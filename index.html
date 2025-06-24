@@ -120,7 +120,7 @@
           layer.bindPopup(`<strong>${p.Unit_Nm}</strong><br>${p.Acres?.toFixed?.(1) ?? 'N/A'} acres<br><em>${p.Loc_Mang}</em>`);
 
 layer.on('click', () => {
-  if (lastLayer) {
+  if (lastLayer && lastLayer !== layer) {
     lastLayer.setStyle({
       fillColor: '#2bddb4',
       weight: 1,
