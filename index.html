@@ -32,7 +32,7 @@
 <div id="map"></div>
 
 <div id="map-title">
-  U.S. Forest Service Inventoried Roadless Areas (1967-2025)
+  USFS Inventoried Roadless Areas (1967-2025)
   <h3 class="map-subtitle">Thanks to Trump, the Roadless Rule is gone. These lands could be next. Click to see what's at stake.</h3>
 </div>
 
@@ -61,7 +61,6 @@
   opacity: 0.85;
   margin: 2px 0 0 0;
 }
-
 </style>
 
 <script>
@@ -72,16 +71,16 @@
     maxZoom: 10
   });
 
-map.createPane('usfsPane');
-map.getPane('usfsPane').style.zIndex = 200;  // lower than default (400) and IRA pane
+  map.createPane('usfsPane');
+  map.getPane('usfsPane').style.zIndex = 200;
 
-map.createPane('iraPane');
-map.getPane('iraPane').style.zIndex = 500;
+  map.createPane('iraPane');
+  map.getPane('iraPane').style.zIndex = 500;
 
-L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, USFS Raster Overlay | Map by Jamie T.',
-  maxZoom: 10
-}).addTo(map);
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, USFS Raster Overlay | Map by Jamie T.',
+    maxZoom: 10
+  }).addTo(map);
 
   const usfsRaster = L.tileLayer('usfs_tiles/{z}/{x}/{y}.png', {
     pane: 'usfsPane',
@@ -92,38 +91,56 @@ L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World
     bounds: [[20, -170], [75, -60]],
     noWrap: true,
     opacity: 0.5,
-    errorTileUrl: 'blank.png',
-    attribution: 'USFS Raster Overlay'
+    errorTileUrl: 'blank.png'
   }).addTo(map);
 
-  fetch('ira_full_wgs84.json')
-  .then(response => {
-    console.log('Fetch response:', response);
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  })
-  .then(data => {
-    console.log('Loaded TopoJSON:', data);
-    const layerName = Object.keys(data.objects)[0];
-    console.log('Layer name:', layerName);
-    const geojson = topojson.feature(data, data.objects[layerName]);
-    console.log("First feature coords:", geojson.features[0]?.geometry?.coordinates);
+  let lastLayer = null;
 
-    L.geoJSON(geojson, {
-      pane: 'iraPane',
-      style: {
-        fillColor: '#FFA500',
-        stroke: false,
-        fillOpacity: 1
-      },
-      onEachFeature: (feature, layer) => {
-	console.log("Feature:", feature);
-        const p = feature.properties;
-        layer.bindPopup(`<strong>${p.Unit_Nm}</strong><br>${p.Acres?.toFixed?.(1) ?? 'N/A'} acres<br><em>${p.Loc_Mang}</em>`);
-      }
-    }).addTo(map);
-  })
-  .catch(err => console.error('Error loading TopoJSON:', err));
+  fetch('ira_full_wgs84.json')
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      const layerName = Object.keys(data.objects)[0];
+      const geojson = topojson.feature(data, data.objects[layerName]);
+
+      L.geoJSON(geojson, {
+        pane: 'iraPane',
+        style: {
+          fillColor: 'orange',
+          weight: 1,
+          color: '#004400',
+          fillOpacity: 1
+        },
+        onEachFeature: (feature, layer) => {
+          const p = feature.properties;
+
+          layer.bindPopup(`<strong>${p.Unit_Nm}</strong><br>${p.Acres?.toFixed?.(1) ?? 'N/A'} acres<br><em>${p.Loc_Mang}</em>`);
+
+          layer.on('click', () => {
+            if (lastLayer) {
+              lastLayer.setStyle({
+                fillColor: 'orange',
+                weight: 1,
+                color: '#004400',
+                fillOpacity: 1
+              });
+            }
+
+            layer.setStyle({
+              fillColor: 'orange',
+              weight: 3,
+              color: 'white',
+              fillOpacity: 1
+            });
+
+            lastLayer = layer;
+          });
+        }
+      }).addTo(map);
+    })
+    .catch(err => console.error('Error loading TopoJSON:', err));
 </script>
 </body>
 </html>
