@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Inventoried Roadless Areas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet core CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- TopoJSON support -->
+  <script src="https://unpkg.com/topojson@3"></script>
+
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: sans-serif;
+    }
+    .leaflet-popup-content {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<div id="map-title">
+  Inventoried Roadless Areas (1967-2025)
+  <h3 class="map-subtitle">Trump's USDA just repealed the Roadless Rule. Click the area to pay respects.</h3>
+</div>
+
+<style>
+#map-title {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #FFFFFF;
+  padding: 6px 16px;
+  font-size: 18px;
+  font-family: sans-serif;
+  font-weight: bold;
+  border-radius: 6px;
+  box-shadow: 1px 1px 5px #000;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.map-subtitle {
+  font-size: 13px;
+  font-weight: bold;
+  opacity: 0.85;
+  margin: 2px 0 0 0;
+}
+
+</style>
+
+<script>
+  const map = L.map('map', {
+    center: [42.0, -114.5],
+    zoom: 5,
+    minZoom: 4,
+    maxZoom: 10
+  });
+
+map.createPane('usfsPane');
+map.getPane('usfsPane').style.zIndex = 200;  // lower than default (400) and IRA pane
+
+map.createPane('iraPane');
+map.getPane('iraPane').style.zIndex = 500;
+
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxZoom: 10
+  }).addTo(map);
+
+  const usfsRaster = L.tileLayer('usfs_tiles/{z}/{x}/{y}.png', {
+    pane: 'usfsPane',
+    minZoom: 4,
+    maxZoom: 10,
+    tileSize: 256,
+    tms: true,
+    bounds: [[20, -170], [75, -60]],
+    noWrap: true,
+    opacity: 0.5,
+    errorTileUrl: 'blank.png',
+    attribution: 'USFS Raster Overlay'
+  }).addTo(map);
+
+  fetch('ira_full_wgs84.json')
+  .then(response => {
+    console.log('Fetch response:', response);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(data => {
+    console.log('Loaded TopoJSON:', data);
+    const layerName = Object.keys(data.objects)[0];
+    console.log('Layer name:', layerName);
+    const geojson = topojson.feature(data, data.objects[layerName]);
+    console.log("First feature coords:", geojson.features[0]?.geometry?.coordinates);
+
+    L.geoJSON(geojson, {
+      pane: 'iraPane',
+      style: {
+        fillColor: '#FFA500',
+        stroke: false,
+        fillOpacity: 1
+      },
+      onEachFeature: (feature, layer) => {
+	console.log("Feature:", feature);
+        const p = feature.properties;
+        layer.bindPopup(`<strong>${p.Unit_Nm}</strong><br>${p.Acres?.toFixed?.(1) ?? 'N/A'} acres<br><em>${p.Loc_Mang}</em>`);
+      }
+    }).addTo(map);
+  })
+  .catch(err => console.error('Error loading TopoJSON:', err));
+</script>
+</body>
+</html>
