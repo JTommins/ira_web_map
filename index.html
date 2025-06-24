@@ -78,7 +78,7 @@
   map.getPane('iraPane').style.zIndex = 500;
 
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, USFS Raster Overlay | Map by Jamie T.',
+    attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, USFS Raster Overlay | Map by Jamie Tommins',
     maxZoom: 10
   }).addTo(map);
 
@@ -109,7 +109,9 @@
         pane: 'iraPane',
         style: {
           fillColor: '#FFA94D',
-          stroke: false,
+          stroke: true,
+          color: 'transparent',
+          weight: 1,
           fillOpacity: 1
         },
         onEachFeature: (feature, layer) => {
@@ -117,25 +119,25 @@
 
           layer.bindPopup(`<strong>${p.Unit_Nm}</strong><br>${p.Acres?.toFixed?.(1) ?? 'N/A'} acres<br><em>${p.Loc_Mang}</em>`);
 
-          layer.on('click', () => {
-            if (lastLayer) {
-              lastLayer.setStyle({
-                fillColor: 'orange',
-                weight: 1,
-                color: '#004400',
-                fillOpacity: 1
-              });
-            }
+layer.on('click', () => {
+  if (lastLayer) {
+    lastLayer.setStyle({
+      fillColor: '#FFA94D',
+      weight: 1,
+      color: 'transparent', 
+      fillOpacity: 1
+    });
+  }
 
-            layer.setStyle({
-              fillColor: 'orange',
-              weight: 3,
-              color: 'white',
-              fillOpacity: 1
-            });
+  layer.setStyle({
+    fillColor: '#FFA94D',
+    weight: 2,
+    color: 'white',
+    fillOpacity: 1
+  });
 
-            lastLayer = layer;
-          });
+  lastLayer = layer;
+});
         }
       }).addTo(map);
     })
