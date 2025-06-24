@@ -33,7 +33,7 @@
 
 <div id="map-title">
   Inventoried Roadless Areas (1967-2025)
-  <h3 class="map-subtitle">Trump's USDA just repealed the Roadless Rule. Click the area to pay respects.</h3>
+  <h3 class="map-subtitle">Thanks to Trump, the Roadless Rule is gone. These intact ecosystems could be next. Click to explore.</h3>
 </div>
 
 <style>
@@ -78,10 +78,10 @@ map.getPane('usfsPane').style.zIndex = 200;  // lower than default (400) and IRA
 map.createPane('iraPane');
 map.getPane('iraPane').style.zIndex = 500;
 
-  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-    maxZoom: 10
-  }).addTo(map);
+L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri — Esri, DeLorme, NAVTEQ, USFS Raster Overlay | Map by Jamie T.',
+  maxZoom: 10
+}).addTo(map);
 
   const usfsRaster = L.tileLayer('usfs_tiles/{z}/{x}/{y}.png', {
     pane: 'usfsPane',
